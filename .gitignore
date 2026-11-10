@@ -1,0 +1,17 @@
+# Llaves privadas: nunca se suben
+.secretos/
+
+.claude/
+node_modules/
+
+# iPhone: el proyecto de Xcode se genera con xcodegen (ver ios/project.yml)
+ios/*.xcodeproj
+ios/build*/
+ios/**/Info.plist
+ios/**/*.entitlements
+
+# Android
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties

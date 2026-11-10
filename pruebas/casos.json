@@ -1,0 +1,292 @@
+{
+  "nota": "Casos que deben dar el mismo resultado en las tres versiones del motor: web/motor.js, ios/Compartido/Motor.swift y android (Motor.kt).",
+  "configs": {
+    "base": {
+      "v": 1,
+      "horaReinicio": 4,
+      "habitos": [
+        { "id": "agua", "emoji": "💧", "nombre": "Agua", "pasos": 8, "tipo": "meta", "color": "#2F9BFF" },
+        { "id": "perro", "emoji": "🐶", "nombre": "Perro", "pasos": 3, "tipo": "meta", "color": "#FF9431" },
+        { "id": "cigarro", "emoji": "🚬", "nombre": "Cigarro", "pasos": 2, "tipo": "limite", "color": "#8E8E93" }
+      ]
+    },
+    "vacia": { "v": 1, "horaReinicio": 4, "habitos": [] },
+    "cero": {
+      "v": 1,
+      "horaReinicio": 0,
+      "habitos": [
+        { "id": "dulces", "emoji": "🍬", "nombre": "Dulces", "pasos": 0, "tipo": "limite", "color": "#FF5FA2" }
+      ]
+    }
+  },
+  "claves": [
+    { "y": 2026, "m": 11, "d": 10, "h": 3, "reinicio": 4, "espera": "2026-11-09" },
+    { "y": 2026, "m": 11, "d": 10, "h": 4, "reinicio": 4, "espera": "2026-11-10" },
+    { "y": 2026, "m": 11, "d": 10, "h": 0, "reinicio": 0, "espera": "2026-11-10" },
+    { "y": 2026, "m": 11, "d": 10, "h": 23, "reinicio": 0, "espera": "2026-11-10" },
+    { "y": 2026, "m": 3, "d": 1, "h": 2, "reinicio": 4, "espera": "2026-02-28" },
+    { "y": 2024, "m": 3, "d": 1, "h": 1, "reinicio": 4, "espera": "2024-02-29" },
+    { "y": 2027, "m": 1, "d": 1, "h": 3, "reinicio": 8, "espera": "2026-12-31" },
+    { "y": 2026, "m": 11, "d": 10, "h": 7, "reinicio": 8, "espera": "2026-11-09" },
+    { "y": 2026, "m": 11, "d": 10, "h": 8, "reinicio": 8, "espera": "2026-11-10" }
+  ],
+  "casos": [
+    {
+      "nombre": "El primer día empieza en ceros",
+      "config": "base",
+      "hoy": null,
+      "historial": {},
+      "pasos": [ { "op": "dia", "dia": "2026-11-10", "cambia": true } ],
+      "espera": {
+        "hoy": { "dia": "2026-11-10", "cuentas": {}, "toques": [] },
+        "historial": {},
+        "puntaje": 33,
+        "redondo": false
+      }
+    },
+    {
+      "nombre": "Los toques avanzan y una meta completa ya no avanza",
+      "config": "base",
+      "hoy": null,
+      "historial": {},
+      "pasos": [
+        { "op": "dia", "dia": "2026-11-10", "cambia": true },
+        { "op": "tocar", "id": "perro", "cambia": true },
+        { "op": "tocar", "id": "perro", "cambia": true },
+        { "op": "tocar", "id": "perro", "cambia": true },
+        { "op": "tocar", "id": "perro", "cambia": false },
+        { "op": "tocar", "id": "agua", "cambia": true },
+        { "op": "tocar", "id": "no-existe", "cambia": false }
+      ],
+      "espera": {
+        "hoy": { "dia": "2026-11-10", "cuentas": { "perro": 3, "agua": 1 }, "toques": ["perro", "perro", "perro", "agua"] },
+        "historial": {},
+        "puntaje": 71,
+        "redondo": false
+      }
+    },
+    {
+      "nombre": "Un límite sigue contando al pasarse y baja el porcentaje",
+      "config": "base",
+      "hoy": null,
+      "historial": {},
+      "pasos": [
+        { "op": "dia", "dia": "2026-11-10", "cambia": true },
+        { "op": "tocar", "id": "cigarro", "cambia": true },
+        { "op": "tocar", "id": "cigarro", "cambia": true },
+        { "op": "tocar", "id": "cigarro", "cambia": true }
+      ],
+      "espera": {
+        "hoy": { "dia": "2026-11-10", "cuentas": { "cigarro": 3 }, "toques": ["cigarro", "cigarro", "cigarro"] },
+        "historial": {},
+        "puntaje": 22,
+        "redondo": false
+      }
+    },
+    {
+      "nombre": "Deshacer quita el último toque, uno por uno",
+      "config": "base",
+      "hoy": null,
+      "historial": {},
+      "pasos": [
+        { "op": "dia", "dia": "2026-11-10", "cambia": true },
+        { "op": "tocar", "id": "agua", "cambia": true },
+        { "op": "tocar", "id": "perro", "cambia": true },
+        { "op": "deshacer", "da": "perro" },
+        { "op": "deshacer", "da": "agua" },
+        { "op": "deshacer", "da": null }
+      ],
+      "espera": {
+        "hoy": { "dia": "2026-11-10", "cuentas": {}, "toques": [] },
+        "historial": {},
+        "puntaje": 33,
+        "redondo": false
+      }
+    },
+    {
+      "nombre": "Deshacer se salta los toques de círculos que ya no existen",
+      "config": "base",
+      "hoy": { "dia": "2026-11-10", "cuentas": { "agua": 1, "viejo": 2 }, "toques": ["agua", "viejo"] },
+      "historial": {},
+      "pasos": [
+        { "op": "dia", "dia": "2026-11-10", "cambia": false },
+        { "op": "deshacer", "da": "agua" }
+      ],
+      "espera": {
+        "hoy": { "dia": "2026-11-10", "cuentas": { "viejo": 2 }, "toques": [] },
+        "historial": {},
+        "puntaje": 33,
+        "redondo": false
+      }
+    },
+    {
+      "nombre": "Al cambiar el día se guarda el anterior en el registro",
+      "config": "base",
+      "hoy": { "dia": "2026-11-09", "cuentas": { "agua": 8, "perro": 2, "cigarro": 1 }, "toques": ["agua", "perro"] },
+      "historial": {},
+      "pasos": [ { "op": "dia", "dia": "2026-11-10", "cambia": true } ],
+      "espera": {
+        "hoy": { "dia": "2026-11-10", "cuentas": {}, "toques": [] },
+        "historial": {
+          "2026-11-09": { "h": [
+            { "id": "agua", "e": "💧", "n": "Agua", "p": 8, "c": 8, "t": "meta" },
+            { "id": "perro", "e": "🐶", "n": "Perro", "p": 3, "c": 2, "t": "meta" },
+            { "id": "cigarro", "e": "🚬", "n": "Cigarro", "p": 2, "c": 1, "t": "limite" }
+          ] }
+        },
+        "puntaje": 33,
+        "redondo": false
+      }
+    },
+    {
+      "nombre": "Los días sin abrir la app quedan en ceros en el registro",
+      "config": "base",
+      "hoy": { "dia": "2026-11-06", "cuentas": { "agua": 3 }, "toques": ["agua", "agua", "agua"] },
+      "historial": {},
+      "pasos": [ { "op": "dia", "dia": "2026-11-09", "cambia": true } ],
+      "espera": {
+        "hoy": { "dia": "2026-11-09", "cuentas": {}, "toques": [] },
+        "historial": {
+          "2026-11-06": { "h": [
+            { "id": "agua", "e": "💧", "n": "Agua", "p": 8, "c": 3, "t": "meta" },
+            { "id": "perro", "e": "🐶", "n": "Perro", "p": 3, "c": 0, "t": "meta" },
+            { "id": "cigarro", "e": "🚬", "n": "Cigarro", "p": 2, "c": 0, "t": "limite" }
+          ] },
+          "2026-11-07": { "h": [
+            { "id": "agua", "e": "💧", "n": "Agua", "p": 8, "c": 0, "t": "meta" },
+            { "id": "perro", "e": "🐶", "n": "Perro", "p": 3, "c": 0, "t": "meta" },
+            { "id": "cigarro", "e": "🚬", "n": "Cigarro", "p": 2, "c": 0, "t": "limite" }
+          ] },
+          "2026-11-08": { "h": [
+            { "id": "agua", "e": "💧", "n": "Agua", "p": 8, "c": 0, "t": "meta" },
+            { "id": "perro", "e": "🐶", "n": "Perro", "p": 3, "c": 0, "t": "meta" },
+            { "id": "cigarro", "e": "🚬", "n": "Cigarro", "p": 2, "c": 0, "t": "limite" }
+          ] }
+        },
+        "puntaje": 33,
+        "redondo": false
+      }
+    },
+    {
+      "nombre": "El registro cruza bien el fin de año",
+      "config": "base",
+      "hoy": { "dia": "2026-12-31", "cuentas": { "perro": 3 }, "toques": [] },
+      "historial": {},
+      "pasos": [ { "op": "dia", "dia": "2027-01-02", "cambia": true } ],
+      "espera": {
+        "hoy": { "dia": "2027-01-02", "cuentas": {}, "toques": [] },
+        "historial": {
+          "2026-12-31": { "h": [
+            { "id": "agua", "e": "💧", "n": "Agua", "p": 8, "c": 0, "t": "meta" },
+            { "id": "perro", "e": "🐶", "n": "Perro", "p": 3, "c": 3, "t": "meta" },
+            { "id": "cigarro", "e": "🚬", "n": "Cigarro", "p": 2, "c": 0, "t": "limite" }
+          ] },
+          "2027-01-01": { "h": [
+            { "id": "agua", "e": "💧", "n": "Agua", "p": 8, "c": 0, "t": "meta" },
+            { "id": "perro", "e": "🐶", "n": "Perro", "p": 3, "c": 0, "t": "meta" },
+            { "id": "cigarro", "e": "🚬", "n": "Cigarro", "p": 2, "c": 0, "t": "limite" }
+          ] }
+        },
+        "puntaje": 33,
+        "redondo": false
+      }
+    },
+    {
+      "nombre": "Si el reloj regresa un día, no se borra ni se guarda nada",
+      "config": "base",
+      "hoy": { "dia": "2026-11-10", "cuentas": { "agua": 2 }, "toques": ["agua", "agua"] },
+      "historial": {},
+      "pasos": [
+        { "op": "dia", "dia": "2026-11-09", "cambia": false },
+        { "op": "tocar", "id": "agua", "cambia": true }
+      ],
+      "espera": {
+        "hoy": { "dia": "2026-11-10", "cuentas": { "agua": 3 }, "toques": ["agua", "agua", "agua"] },
+        "historial": {},
+        "puntaje": 46,
+        "redondo": false
+      }
+    },
+    {
+      "nombre": "Sin círculos no se guarda registro",
+      "config": "vacia",
+      "hoy": { "dia": "2026-11-08", "cuentas": {}, "toques": [] },
+      "historial": {},
+      "pasos": [ { "op": "dia", "dia": "2026-11-10", "cambia": true } ],
+      "espera": {
+        "hoy": { "dia": "2026-11-10", "cuentas": {}, "toques": [] },
+        "historial": {},
+        "puntaje": null,
+        "redondo": false
+      }
+    },
+    {
+      "nombre": "Día redondo: todas las metas completas y el límite respetado",
+      "config": "base",
+      "hoy": { "dia": "2026-11-10", "cuentas": { "agua": 7, "perro": 3, "cigarro": 2 }, "toques": [] },
+      "historial": {},
+      "pasos": [
+        { "op": "dia", "dia": "2026-11-10", "cambia": false },
+        { "op": "tocar", "id": "agua", "cambia": true },
+        { "op": "tocar", "id": "agua", "cambia": false }
+      ],
+      "espera": {
+        "hoy": { "dia": "2026-11-10", "cuentas": { "agua": 8, "perro": 3, "cigarro": 2 }, "toques": ["agua"] },
+        "historial": {},
+        "puntaje": 100,
+        "redondo": true
+      }
+    },
+    {
+      "nombre": "Un límite de cero se cumple sin tocarlo",
+      "config": "cero",
+      "hoy": null,
+      "historial": {},
+      "pasos": [ { "op": "dia", "dia": "2026-11-10", "cambia": true } ],
+      "espera": {
+        "hoy": { "dia": "2026-11-10", "cuentas": {}, "toques": [] },
+        "historial": {},
+        "puntaje": 100,
+        "redondo": true
+      }
+    },
+    {
+      "nombre": "Un límite de cero se rompe con el primer toque",
+      "config": "cero",
+      "hoy": null,
+      "historial": {},
+      "pasos": [
+        { "op": "dia", "dia": "2026-11-10", "cambia": true },
+        { "op": "tocar", "id": "dulces", "cambia": true }
+      ],
+      "espera": {
+        "hoy": { "dia": "2026-11-10", "cuentas": { "dulces": 1 }, "toques": ["dulces"] },
+        "historial": {},
+        "puntaje": 0,
+        "redondo": false
+      }
+    },
+    {
+      "nombre": "Una cuenta mayor que la meta (por haberla bajado) se respeta en el registro",
+      "config": "base",
+      "hoy": { "dia": "2026-11-09", "cuentas": { "agua": 12 }, "toques": [] },
+      "historial": {},
+      "pasos": [
+        { "op": "tocar", "id": "agua", "cambia": false },
+        { "op": "dia", "dia": "2026-11-10", "cambia": true }
+      ],
+      "espera": {
+        "hoy": { "dia": "2026-11-10", "cuentas": {}, "toques": [] },
+        "historial": {
+          "2026-11-09": { "h": [
+            { "id": "agua", "e": "💧", "n": "Agua", "p": 8, "c": 12, "t": "meta" },
+            { "id": "perro", "e": "🐶", "n": "Perro", "p": 3, "c": 0, "t": "meta" },
+            { "id": "cigarro", "e": "🚬", "n": "Cigarro", "p": 2, "c": 0, "t": "limite" }
+          ] }
+        },
+        "puntaje": 33,
+        "redondo": false
+      }
+    }
+  ]
+}
