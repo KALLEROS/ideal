@@ -1,0 +1,90 @@
+# Compila la app de iPhone y su widget, corre las pruebas, toma fotos del widget y deja listo el instalable (Ideal.ipa).
+name: iPhone
+on:
+  push:
+    branches: [main]
+    paths: ['ios/**', 'web/**', 'pruebas/**', '.github/workflows/ios.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: iphone-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  compilar:
+    runs-on: macos-26
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Generar el proyecto de Xcode
+        run: |
+          brew install xcodegen
+          cd ios && xcodegen generate
+          xcodebuild -version
+
+      - name: Elegir un iPhone simulado
+        run: |
+          UDID=$(xcrun simctl list devices available -j | python3 ios/elegir_simulador.py)
+          test -n "$UDID"
+          echo "SIMULADOR=$UDID" >> "$GITHUB_ENV"
+          xcrun simctl list devices available | grep "$UDID"
+
+      - name: Probar el motor y fotografiar el widget
+        run: |
+          cd ios
+          set -o pipefail
+          xcodebuild test -quiet -project Ideal.xcodeproj -scheme Ideal -destination "id=$SIMULADOR" \
+            -derivedDataPath build-sim CODE_SIGNING_ALLOWED=NO 2>&1 | tail -n 250
+
+      - name: Fotografiar la app abierta
+        continue-on-error: true
+        run: |
+          cd ios
+          xcrun simctl boot "$SIMULADOR" || true
+          xcrun simctl install "$SIMULADOR" build-sim/Build/Products/Debug-iphonesimulator/Ideal.app
+          xcrun simctl launch "$SIMULADOR" com.kalleros.ideal
+          sleep 15
+          mkdir -p /tmp/ideal-fotos
+          xcrun simctl io "$SIMULADOR" screenshot /tmp/ideal-fotos/app.png
+
+      - name: Guardar las fotos
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fotos-iphone
+          path: /tmp/ideal-fotos
+          if-no-files-found: warn
+
+      - name: Compilar para iPhone y armar el instalable
+        run: |
+          cd ios
+          set -o pipefail
+          xcodebuild build -quiet -project Ideal.xcodeproj -scheme Ideal -configuration Release -sdk iphoneos \
+            -destination 'generic/platform=iOS' -derivedDataPath build-ios CODE_SIGNING_ALLOWED=NO 2>&1 | tail -n 250
+          APP=build-ios/Build/Products/Release-iphoneos/Ideal.app
+          test -d "$APP/PlugIns/IdealWidget.appex"
+          test -f "$APP/web/index.html"
+          # Firma local con los permisos adentro: así AltStore sabe que la app y el widget comparten una carpeta
+          # y la registra con el Apple ID de quien la instala.
+          codesign --force --sign - --entitlements IdealWidget/IdealWidget.entitlements "$APP/PlugIns/IdealWidget.appex"
+          codesign --force --sign - --entitlements Ideal/Ideal.entitlements "$APP"
+          codesign -d --entitlements - "$APP" 2>&1 | tail -n 12
+          rm -rf Payload && mkdir Payload && cp -R "$APP" Payload/
+          zip -qry Ideal.ipa Payload
+          ls -lh Ideal.ipa
+
+      - name: Guardar el instalable
+        uses: actions/upload-artifact@v4
+        with:
+          name: Ideal-iPhone
+          path: ios/Ideal.ipa
+
+      - name: Publicar en Instaladores
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view instaladores >/dev/null 2>&1 || gh release create instaladores --title "Instaladores" \
+            --notes "Los archivos para instalar Ideal: Ideal.ipa (iPhone) e Ideal.apk (Android). Se actualizan solos con cada cambio. Las instrucciones están en el README." || true
+          gh release upload instaladores ios/Ideal.ipa --clobber
