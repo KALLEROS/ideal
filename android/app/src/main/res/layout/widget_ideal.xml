@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- El widget: una cabeza con el avance del día y abajo las filas de monedas (se agregan desde WidgetIdeal.kt). -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/raiz"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_fondo"
+    android:orientation="vertical"
+    android:padding="14dp">
+
+    <LinearLayout
+        android:id="@+id/cabeza"
+        android:layout_width="match_parent"
+        android:layout_height="28dp"
+        android:layout_marginBottom="6dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/titulo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/tinta"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/porcentaje"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="7dp"
+            android:layout_weight="1"
+            android:textColor="@color/suave"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:id="@+id/deshacer"
+            android:layout_width="44dp"
+            android:layout_height="28dp"
+            android:background="@drawable/widget_pastilla"
+            android:contentDescription="@string/deshacer"
+            android:padding="5dp"
+            android:src="@drawable/ic_deshacer" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/filas"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical" />
+
+    <TextView
+        android:id="@+id/vacio"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:text="@string/widget_vacio"
+        android:textColor="@color/suave"
+        android:textSize="14sp"
+        android:visibility="gone" />
+</LinearLayout>

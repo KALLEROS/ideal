@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nombre">Ideal</string>
+    <string name="widget_descripcion">Toca un círculo para avanzar en tu rutina del día.</string>
+    <string name="widget_vacio">Abre Ideal y elige tus círculos.</string>
+    <string name="deshacer">Deshacer el último toque</string>
+</resources>

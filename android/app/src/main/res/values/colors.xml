@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="fondo">#EEF0F4</color>
+    <color name="tablero">#FFFFFF</color>
+    <color name="hundido">#E6E8EE</color>
+    <color name="tinta">#10131A</color>
+    <color name="suave">#687082</color>
+</resources>
