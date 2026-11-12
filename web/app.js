@@ -8,7 +8,7 @@
   var capas = document.getElementById('capas');
   var pestanas = document.getElementById('pestanas');
   var REPO = 'https://github.com/KALLEROS/ideal';
-  var VERSION = '1.0';
+  var VERSION = '1.1';
   var MAX_CIRCULOS = 20;
 
   var estado = { config: null, hoy: null, historial: {} };
@@ -201,23 +201,33 @@
 
   // ---------- Hoy ----------
   function resumenHoy() {
-    var items = M.fotoDeHoy(estado), completos = 0, pasados = 0;
+    var items = M.fotoDeHoy(estado), cumplidos = 0, pasados = 0;
     items.forEach(function (it) {
-      if (it.t === 'limite') { if (it.c > it.p) pasados++; } else if (it.c >= it.p) completos++;
+      if (M.cumplido(it)) cumplidos++;
+      if (M.excedido(it.t, it.p, it.c)) pasados++;
     });
-    var metas = items.filter(function (it) { return it.t !== 'limite'; }).length;
     var texto;
     if (M.redondo(items)) texto = 'Día redondo. Todo cumplido.';
     else {
-      texto = metas ? completos + ' de ' + plural(metas, 'círculo completo', 'círculos completos') : 'Vas dentro de tus límites';
+      texto = 'Llevas ' + cumplidos + ' de ' + items.length + ' cumplidos';
       if (pasados) texto += '. ' + (pasados === 1 ? 'Pasaste un límite' : 'Pasaste ' + pasados + ' límites');
     }
-    return { pct: M.puntaje(items) || 0, redondo: M.redondo(items), texto: texto };
+    return { pct: M.puntaje(items) || 0, redondo: M.redondo(items), texto: texto, cumplidos: cumplidos, total: items.length,
+      racha: M.racha(estado.historial, estado.hoy.dia, items) };
+  }
+  // El fueguito de la racha: encendido cuando hoy ya cuenta, gris mientras todavía no.
+  function fuegoHTML(r, extra) {
+    return '<span class="fuego' + (r.encendida ? ' encendida' : '') + (extra || '') + '"><span class="llama" aria-hidden="true">🔥</span><b>' + r.dias + '</b></span>';
+  }
+  function textoRacha(r) {
+    if (!r.dias) return 'Sin racha todavía';
+    return 'Racha de ' + plural(r.dias, 'día', 'días') + (r.encendida ? ', hoy ya cuenta' : ', cumple todo hoy para seguirla');
   }
   function pintarHoy() {
     alDia();
     var hs = estado.config.habitos;
-    var cabeza = '<header class="cabeza"><div><p class="fecha">' + esc(fmtLargo.format(M.fechaDe(estado.hoy.dia))) + '</p><h1>Hoy</h1><p class="resumen" id="resumen"></p></div>' +
+    var cabeza = '<header class="cabeza"><div><p class="fecha">' + esc(fmtLargo.format(M.fechaDe(estado.hoy.dia))) + '</p><div class="titulo-hoy"><h1>Hoy</h1>' +
+      (hs.length ? '<button type="button" class="boton-fuego" id="fuego" data-accion="racha" hidden></button>' : '') + '</div><p class="resumen" id="resumen"></p></div>' +
       (hs.length ? '<div class="moneda moneda-dia" id="moneda-dia" role="img"><span class="liquido"></span><span class="numero"><span id="pct">0</span><small>%</small></span></div>' : '') + '</header>';
     if (!hs.length) {
       vista.innerHTML = cabeza + '<div class="vacio-grande"><p>Todavía no tienes círculos. Elige los de tu rutina para empezar.</p>' +
@@ -265,6 +275,12 @@
       md.setAttribute('aria-label', 'Llevas el ' + r.pct + '% de tu día');
       document.getElementById('pct').textContent = r.pct;
     }
+    var fu = document.getElementById('fuego');
+    if (fu) {
+      fu.hidden = !r.racha.dias;
+      fu.innerHTML = fuegoHTML(r.racha);
+      fu.setAttribute('aria-label', textoRacha(r.racha) + '. Ver tu registro');
+    }
     var res = document.getElementById('resumen');
     if (res) { res.textContent = r.texto; res.classList.toggle('oro', r.redondo); }
     var des = document.getElementById('deshacer');
@@ -285,7 +301,13 @@
     efecto(el, 'pum', 460); efecto(el, 'ondea', 1900);
     if (completa) efecto(el, 'destello', 850);
     D.vibrar(completa || (redondo && !eraRedondo) ? 'exito' : M.excedido(h.tipo, h.pasos, c) ? 'tope' : 'ligero');
-    if (redondo && !eraRedondo) { efecto(document.getElementById('moneda-dia'), 'destello', 850); aviso('Día redondo. Todo cumplido.'); }
+    if (redondo && !eraRedondo) {
+      efecto(document.getElementById('moneda-dia'), 'destello', 850);
+      var fu = document.getElementById('fuego');
+      if (fu) efecto(fu.querySelector('.fuego'), 'prende', 1300);
+      var dias = M.racha(estado.historial, estado.hoy.dia, M.fotoDeHoy(estado)).dias;
+      aviso(dias > 1 ? '🔥 ' + dias + ' días seguidos al 100%' : '🔥 Día redondo. Prendiste tu racha');
+    }
   }
   function alDeshacer() {
     var id = M.deshacer(estado);
@@ -348,6 +370,7 @@
     else if (a === 'subir' || a === 'bajar') mover(id, a === 'subir' ? -1 : 1);
     else if (a === 'mes-antes' || a === 'mes-despues') { cambiarMes(a === 'mes-antes' ? -1 : 1); }
     else if (a === 'dia') abrirDia(b.dataset.dia);
+    else if (a === 'racha') { ui.pestana = 'registro'; pintar(); window.scrollTo(0, 0); }
     else if (a === 'widget') abrirWidget();
     else if (a === 'instalar') abrirInstalar();
     else if (a === 'respaldar') respaldar();
@@ -369,23 +392,26 @@
   }
   function cuentasRegistro() {
     var dias = Object.keys(estado.historial).sort();
-    var mejor = 0, racha = 0, previo = null, redondos = 0;
+    var mejor = 0, racha = 0, previo = null, redondos = 0, cumplidos = 0;
     dias.forEach(function (d) {
-      var r = M.redondo(estado.historial[d].h);
+      var h = estado.historial[d].h, r = M.redondo(h);
+      h.forEach(function (it) { if (M.cumplido(it)) cumplidos++; });
       if (r) { redondos++; racha = (previo && M.sumarDias(previo, 1) === d) ? racha + 1 : 1; } else racha = 0;
       if (racha > mejor) mejor = racha;
       previo = d;
     });
-    var seguida = (previo && M.sumarDias(previo, 1) === estado.hoy.dia) ? racha : 0;
-    if (M.redondo(M.fotoDeHoy(estado))) seguida++;
-    if (seguida > mejor) mejor = seguida;
-    var ultimos = dias.slice(-30), suma = 0, n = 0, redondos30 = 0;
+    var hoy = resumenHoy();
+    if (hoy.racha.dias > mejor) mejor = hoy.racha.dias;
+    var ultimos = dias.slice(-30), suma = 0, n = 0;
     ultimos.forEach(function (d) {
       var p = M.puntaje(estado.historial[d].h);
       if (p !== null) { suma += p; n++; }
-      if (M.redondo(estado.historial[d].h)) redondos30++;
     });
-    return { dias: dias, racha: seguida, mejor: mejor, redondos: redondos, promedio: n ? Math.round(suma / n) : null, n: n, redondos30: redondos30 };
+    return {
+      dias: dias, hoy: hoy, racha: hoy.racha, mejor: mejor,
+      redondos: redondos + (hoy.redondo ? 1 : 0), cumplidos: cumplidos + hoy.cumplidos,
+      promedio: n ? Math.round(suma / n) : null, n: n
+    };
   }
   function cambiarMes(delta) {
     var f = new Date(ui.mes.y, ui.mes.m + delta, 1);
@@ -397,17 +423,34 @@
     var r = cuentasRegistro();
     var hoyF = M.fechaDe(estado.hoy.dia);
     if (!ui.mes) ui.mes = { y: hoyF.getFullYear(), m: hoyF.getMonth() };
-    var html = '<header class="cabeza"><div><h1>Registro</h1></div></header><section class="frase">';
-    if (!r.dias.length) {
-      html += '<p class="grande">Tu registro empieza hoy.</p><p class="chica">Mañana vas a ver aquí cómo te fue. Un día en el que cumples todo es un día redondo y se pinta de oro.</p>';
-    } else {
-      html += '<p class="grande">' + (r.racha > 1 ? 'Llevas <b>' + r.racha + '</b> días redondos seguidos.' :
-        r.racha === 1 ? 'Llevas <b>1</b> día redondo. Mañana puede ser el segundo.' : 'Cumple todo hoy y empieza una racha de días redondos.') + '</p>' +
-        '<p class="chica">' + (r.mejor ? 'Tu mejor racha: <b>' + plural(r.mejor, 'día', 'días') + '</b>. ' : '') +
-        (r.promedio !== null ? 'En ' + (r.n === 1 ? 'el último día' : 'los últimos ' + r.n + ' días') + ' cumpliste en promedio el <b>' + r.promedio + '%</b> y tuviste <b>' +
-          plural(r.redondos30, 'día redondo', 'días redondos') + '</b>.' : '') + '</p>';
+    var html = '<header class="cabeza"><div><h1>Registro</h1></div></header>';
+
+    // La racha, en grande, con los últimos siete días.
+    var ra = r.racha;
+    var pie = ra.encendida ? (ra.dias > 1 ? 'Hoy ya cuenta. Cumple todo mañana para llegar a ' + (ra.dias + 1) + '.' : 'Prendiste tu racha. Cumple todo mañana para que crezca.')
+      : ra.dias ? 'Cumple todo hoy para llegar a ' + (ra.dias + 1) + '. Si no, vuelve a cero.'
+      : 'Cumple todos tus círculos hoy para prender tu racha.';
+    html += '<section class="racha-hero' + (ra.encendida ? ' encendida' : ra.dias ? ' viva' : '') + '" aria-label="' + esc(textoRacha(ra)) + '">' +
+      '<div class="racha-arriba"><span class="llama-grande" aria-hidden="true">🔥</span><div><p class="racha-num"><b>' + ra.dias + '</b> ' + (ra.dias === 1 ? 'día' : 'días') + '</p>' +
+      '<p class="racha-sub">seguidos al 100%</p></div></div><p class="racha-pie">' + esc(pie) + '</p><div class="racha-semana" aria-hidden="true">';
+    var letras = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
+    for (var k = 6; k >= 0; k--) {
+      var dk = M.sumarDias(estado.hoy.dia, -k), its = itemsDe(dk), esH = k === 0;
+      var ok = its && its.length && M.redondo(its);
+      html += '<span class="' + (ok ? 'si' : esH ? 'pendiente' : 'no') + (esH ? ' hoy' : '') + '"><i>' + (ok ? '🔥' : '') + '</i><small>' + letras[M.fechaDe(dk).getDay()] + '</small></span>';
     }
-    html += '</section>';
+    html += '</div></section>';
+
+    // Tus números.
+    function tile(valor, texto) { return '<div class="dato"><b>' + valor + '</b><span>' + esc(texto) + '</span></div>'; }
+    html += '<section class="numeros" aria-label="Tus números">' +
+      tile(r.hoy.cumplidos + '<small>/' + r.hoy.total + '</small>', 'Cumplidos hoy') +
+      tile(r.mejor + '<small> ' + (r.mejor === 1 ? 'día' : 'días') + '</small>', 'Tu mejor racha') +
+      tile(r.redondos, r.redondos === 1 ? 'Día al 100%' : 'Días al 100%') +
+      tile(r.promedio !== null ? r.promedio + '<small>%</small>' : '—', r.n > 1 ? 'Promedio de ' + r.n + ' días' : 'Promedio') +
+      tile(r.cumplidos, 'Cumplidos en total') +
+      tile(r.dias.length + 1, r.dias.length ? 'Días en tu registro' : 'Día en tu registro') +
+      '</section>';
 
     // Calendario del mes: cada día es una moneda que muestra cuánto se cumplió.
     var primero = r.dias.length ? M.fechaDe(r.dias[0]) : hoyF;
@@ -430,20 +473,36 @@
     }
     html += '</div><div class="leyenda"><span><i class="oro"></i>Día redondo</span><span><i></i>Día a medias</span></div></section>';
 
-    // Cómo va cada círculo en los últimos 30 días guardados.
-    var ultimos = r.dias.slice(-30), filas = '';
+    // Cada círculo: cuántos días lo cumpliste y su propia racha. Lo bueno y lo malo por separado.
+    var ultimos = r.dias.slice(-30), buenos = '', malos = '';
+    var hoyItems = M.fotoDeHoy(estado), siete = M.sumarDias(estado.hoy.dia, -6);
     estado.config.habitos.forEach(function (h) {
-      var suma = 0, n = 0;
+      var hecho = 0, n = 0, total7 = 0, deHoy = null;
       ultimos.forEach(function (dia) {
-        estado.historial[dia].h.forEach(function (it) { if (it.id === h.id) { suma += M.cumplimiento(it.t, it.p, it.c); n++; } });
+        estado.historial[dia].h.forEach(function (it) {
+          if (it.id !== h.id) return;
+          n++;
+          if (M.cumplido(it)) hecho++;
+          if (dia >= siete) total7 += it.c;
+        });
       });
-      if (!n) return;
-      var p = Math.round(suma / n * 100);
-      filas += '<div class="fila">' + monedaFija(h.emoji, h.color, 'meta', 100, p) + '<div class="texto"><b>' + esc(h.nombre) + '</b>' +
-        '<div class="barra" style="--c:' + esc(h.color) + '"><i style="width:' + p + '%"></i></div></div><span class="valor">' + p + '%</span></div>';
+      hoyItems.forEach(function (it) { if (it.id === h.id) deHoy = it; });
+      if (deHoy) total7 += deHoy.c;
+      var rc = M.rachaCirculo(estado.historial, estado.hoy.dia, h.id, deHoy);
+      var p = n ? Math.round(hecho / n * 100) : (deHoy && M.cumplido(deHoy) ? 100 : 0);
+      var limite = h.tipo === 'limite';
+      var detalle = n ? (limite ? 'Dentro del límite ' : 'Cumplido ') + hecho + ' de ' + plural(n, 'día', 'días') : 'Empezó hoy';
+      if (limite) detalle += ' · ' + total7 + ' en 7 días';
+      var fila = '<div class="fila">' + monedaFija(h.emoji, h.color, 'meta', 100, p) + '<div class="texto"><b>' + esc(h.nombre) + '</b>' +
+        '<div class="barra" style="--c:' + esc(h.color) + '"><i style="width:' + p + '%"></i></div><span>' + esc(detalle) + '</span></div>' +
+        (rc.dias ? fuegoHTML(rc, ' chico') : '<span class="valor">' + p + '%</span>') + '</div>';
+      if (limite) malos += fila; else buenos += fila;
     });
-    if (filas) html += '<section class="tarjeta por-circulo"><h2>Por círculo</h2><p class="nota" style="margin:4px 0 6px">Cuánto cumpliste de cada uno en ' +
-      (ultimos.length === 1 ? 'el último día' : 'los últimos ' + ultimos.length + ' días') + '.</p>' + filas + '</section>';
+    var periodo = ultimos.length ? (ultimos.length === 1 ? 'el último día' : 'los últimos ' + ultimos.length + ' días') : 'hoy';
+    if (buenos) html += '<section class="tarjeta por-circulo"><h2>Lo bueno</h2><p class="nota" style="margin:4px 0 6px">Cuántos días cumpliste cada uno en ' + periodo +
+      '. El 🔥 son los días seguidos.</p>' + buenos + '</section>';
+    if (malos) html += '<section class="tarjeta por-circulo"><h2>Malos hábitos</h2><p class="nota" style="margin:4px 0 6px">Cuántos días te quedaste dentro de tu límite en ' + periodo +
+      ' y cuántos llevas en la semana.</p>' + malos + '</section>';
     vista.innerHTML = html;
   }
   function abrirDia(dia) {

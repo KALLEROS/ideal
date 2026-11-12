@@ -8,6 +8,7 @@
   var MAX_CUENTA = 99;   // hasta dónde cuenta un límite
   var MAX_TOQUES = 400;  // toques del día que se recuerdan para poder deshacer
   var MAX_HUECO = 400;   // días sin abrir la app que se rellenan en el registro
+  var MAX_RACHA = 3660;  // hasta dónde se cuentan días hacia atrás para una racha (unos 10 años)
 
   // ---------- Fechas ----------
   function dos(n) { return (n < 10 ? '0' : '') + n; }
@@ -65,6 +66,31 @@
     if (!items || !items.length) return false;
     for (var i = 0; i < items.length; i++) if (cumplimiento(items[i].t, items[i].p, items[i].c) < 1) return false;
     return true;
+  }
+
+  // ---------- Rachas ----------
+  function cumplido(it) { return cumplimiento(it.t, it.p, it.c) >= 1; }
+
+  // La racha de fuego: días seguidos con todo cumplido (días redondos). Cuenta desde ayer hacia atrás y,
+  // si hoy ya está todo cumplido, suma hoy y la racha queda "encendida". Si hoy todavía no, la racha
+  // sigue viva hasta que termine el día: cumplir todo hoy la prende otra vez.
+  function racha(historial, dia, itemsHoy) {
+    var n = 0, d = sumarDias(dia, -1);
+    while (n < MAX_RACHA && historial[d] && redondo(historial[d].h)) { n++; d = sumarDias(d, -1); }
+    var hoy = redondo(itemsHoy);
+    return { dias: n + (hoy ? 1 : 0), encendida: hoy };
+  }
+  // Lo mismo, para un solo círculo: días seguidos en que se cumplió ese círculo.
+  function rachaCirculo(historial, dia, id, itemHoy) {
+    var n = 0, d = sumarDias(dia, -1);
+    while (n < MAX_RACHA && historial[d]) {
+      var it = null, h = historial[d].h;
+      for (var i = 0; i < h.length; i++) if (h[i].id === id) { it = h[i]; break; }
+      if (!it || !cumplido(it)) break;
+      n++; d = sumarDias(d, -1);
+    }
+    var hoy = !!itemHoy && cumplido(itemHoy);
+    return { dias: n + (hoy ? 1 : 0), encendida: hoy };
   }
 
   // ---------- El día ----------
@@ -147,7 +173,7 @@
     MAX_PASOS: MAX_PASOS, MAX_CUENTA: MAX_CUENTA,
     claveDe: claveDe, fechaDe: fechaDe, claveDia: claveDia, sumarDias: sumarDias, siguienteReinicio: siguienteReinicio,
     cuentaEn: cuentaEn, buscar: buscar, valor: valor, cumplimiento: cumplimiento, excedido: excedido,
-    puntaje: puntaje, redondo: redondo, hoyNuevo: hoyNuevo, foto: foto, fotoDeHoy: fotoDeHoy,
+    puntaje: puntaje, redondo: redondo, cumplido: cumplido, racha: racha, rachaCirculo: rachaCirculo, hoyNuevo: hoyNuevo, foto: foto, fotoDeHoy: fotoDeHoy,
     ponerAlDia: ponerAlDia, tocar: tocar, deshacer: deshacer, quitarUno: quitarUno,
     reiniciarCirculo: reiniciarCirculo, limpiarHoy: limpiarHoy
   };

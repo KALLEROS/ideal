@@ -6,6 +6,18 @@ private struct Archivo: Decodable {
     let configs: [String: Config]
     let claves: [CasoClave]
     let casos: [Caso]
+    let rachas: [CasoRacha]
+}
+private struct EsperaRacha: Decodable {
+    let dias: Int
+    let encendida: Bool
+}
+private struct CasoRacha: Decodable {
+    let nombre: String
+    let dia: String
+    let historial: [String: DiaGuardado]
+    let hoy: [Foto]
+    let espera: EsperaRacha
 }
 private struct CasoClave: Decodable {
     let y: Int
@@ -69,6 +81,16 @@ final class MotorTests: XCTestCase {
             let hoy = Motor.foto(e.config, e.hoy?.cuentas)
             XCTAssertEqual(Motor.puntaje(hoy), caso.espera.puntaje, caso.nombre)
             XCTAssertEqual(Motor.redondo(hoy), caso.espera.redondo, caso.nombre)
+        }
+    }
+
+    func testRachas() throws {
+        let rachas = try archivo().rachas
+        XCTAssertFalse(rachas.isEmpty)
+        for caso in rachas {
+            let r = Motor.racha(caso.historial, dia: caso.dia, hoy: caso.hoy)
+            XCTAssertEqual(r.dias, caso.espera.dias, caso.nombre)
+            XCTAssertEqual(r.encendida, caso.espera.encendida, caso.nombre)
         }
     }
 

@@ -65,6 +65,21 @@ class MotorTest {
     }
 
     @Test
+    fun rachas() {
+        val rachas = datos.getJSONArray("rachas")
+        assertTrue(rachas.length() > 0)
+        for (i in 0 until rachas.length()) {
+            val caso = rachas.getJSONObject(i)
+            val nombre = caso.getString("nombre")
+            val hoy = Motor.redondo(caso.getJSONArray("hoy"))
+            val r = Motor.racha(caso.getJSONObject("historial"), caso.getString("dia"), hoy)
+            val espera = caso.getJSONObject("espera")
+            assertEquals(nombre, espera.getInt("dias"), r.dias)
+            assertEquals(nombre, espera.getBoolean("encendida"), r.encendida)
+        }
+    }
+
+    @Test
     fun siguienteReinicio() {
         val antes = GregorianCalendar(2026, 10, 10, 2, 15)
         val r = Motor.siguienteReinicio(antes, 4)

@@ -120,6 +120,15 @@ class WidgetIdeal : AppWidgetProvider() {
             raiz.setTextViewText(R.id.titulo, if (redondo) "Día redondo" else "Hoy")
             raiz.setTextColor(R.id.titulo, if (redondo) (if (noche) 0xFFFFCD1F.toInt() else 0xFFE0A800.toInt()) else ctx.getColor(R.color.tinta))
             raiz.setTextViewText(R.id.porcentaje, if (redondo) "" else "${Motor.puntaje(e) ?: 0}%")
+            val racha = Motor.racha(e)
+            if (racha.dias > 0) {
+                raiz.setViewVisibility(R.id.fuego, View.VISIBLE)
+                raiz.setImageViewBitmap(R.id.fuego, dibujarFuego(racha, ctx.resources.displayMetrics.density, noche))
+                raiz.setContentDescription(R.id.fuego,
+                    if (racha.encendida) "Racha de ${racha.dias} días, hoy ya cuenta" else "Racha de ${racha.dias} días, cumple todo hoy para seguirla")
+            } else {
+                raiz.setViewVisibility(R.id.fuego, View.GONE)
+            }
             raiz.setViewVisibility(R.id.deshacer, if (e.toques.isEmpty()) View.INVISIBLE else View.VISIBLE)
             raiz.setOnClickPendingIntent(R.id.deshacer, aviso(ctx, DESHACER, null))
 
@@ -170,6 +179,37 @@ class WidgetIdeal : AppWidgetProvider() {
 
         private fun oscurecer(color: Int, factor: Float): Int =
             Color.rgb((Color.red(color) * factor).toInt(), (Color.green(color) * factor).toInt(), (Color.blue(color) * factor).toInt())
+
+        /** La racha: una pastilla con un fueguito y los días seguidos al 100 %. Gris mientras hoy todavía no cuenta. */
+        fun dibujarFuego(r: Racha, densidad: Float, noche: Boolean): Bitmap {
+            val alto = 24f * densidad
+            val llama = 0xFFFF8A1F.toInt()
+            val emoji = Paint(Paint.ANTI_ALIAS_FLAG).apply { textSize = 13f * densidad }
+            val numero = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                textSize = 14f * densidad
+                typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+                color = if (r.encendida) llama else (if (noche) 0xFFA0A0AA.toInt() else 0xFF687082.toInt())
+            }
+            val texto = r.dias.toString()
+            val margen = 8f * densidad
+            val ancho = margen + emoji.measureText("🔥") + 2f * densidad + numero.measureText(texto) + margen
+            val bmp = Bitmap.createBitmap(ceil(ancho).toInt(), ceil(alto).toInt(), Bitmap.Config.ARGB_8888)
+            val lienzo = Canvas(bmp)
+            val fondo = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = if (r.encendida) (if (noche) 0x33FF8A1F else 0x26FF8A1F) else (if (noche) 0xE62A2A2E.toInt() else 0xE6E6E8EE.toInt())
+            }
+            lienzo.drawRoundRect(RectF(0f, 0f, ancho, alto), alto / 2f, alto / 2f, fondo)
+            // Apagada, el fueguito se pinta en gris.
+            if (!r.encendida) {
+                val gris = android.graphics.ColorMatrix().apply { setSaturation(0f) }
+                emoji.colorFilter = android.graphics.ColorMatrixColorFilter(gris)
+                emoji.alpha = 200
+            }
+            val base = alto / 2f - (numero.descent() + numero.ascent()) / 2f
+            lienzo.drawText("🔥", margen, alto / 2f - (emoji.descent() + emoji.ascent()) / 2f, emoji)
+            lienzo.drawText(texto, margen + emoji.measureText("🔥") + 2f * densidad, base, numero)
+            return bmp
+        }
 
         /** Dibuja una moneda: fondo, líquido de color hasta donde va la cuenta, y el emoji encima. */
         fun dibujarMoneda(h: Habito, c: Int, px: Int, noche: Boolean): Bitmap {

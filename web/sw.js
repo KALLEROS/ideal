@@ -1,6 +1,6 @@
 // Guarda la app en el teléfono para que abra aunque no haya señal.
 // Primero intenta la red (para recibir actualizaciones) y si falla usa la copia guardada.
-var CACHE = 'ideal-v1';
+var CACHE = 'ideal-v2';
 var ARCHIVOS = ['./', './index.html', './estilos.css', './motor.js', './catalogo.js', './datos.js', './app.js', './emojis.js',
                 './manifest.webmanifest', './icon.svg', './icon-180.png', './icon-192.png', './icon-512.png'];
 

@@ -23,9 +23,7 @@ struct Proveedor: TimelineProvider {
         let estado = Almacen.estadoAlDia(ahora: ahora)
         let reinicio = Motor.siguienteReinicio(despuesDe: ahora, horaReinicio: estado.config.horaReinicio)
         let hoy = DatosWidget(estado: estado)
-        var manana = hoy
-        manana.cuentas = [:]
-        manana.hayToques = false
+        let manana = hoy.alReiniciar
         completion(Timeline(entries: [Entrada(date: ahora, datos: hoy), Entrada(date: reinicio, datos: manana)],
                             policy: .after(reinicio)))
     }

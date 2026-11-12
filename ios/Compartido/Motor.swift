@@ -83,6 +83,21 @@ enum Motor {
         !items.isEmpty && items.allSatisfy { cumplimiento(tipo: $0.t, pasos: $0.p, c: $0.c) >= 1 }
     }
 
+    // MARK: Rachas
+
+    /// La racha de fuego: días seguidos con todo cumplido. Cuenta desde ayer hacia atrás y suma hoy si ya está todo
+    /// cumplido ("encendida"). Si hoy todavía no, la racha sigue viva hasta que termine el día.
+    static func racha(_ historial: [String: DiaGuardado], dia: String, hoy: [Foto]) -> (dias: Int, encendida: Bool) {
+        var n = 0
+        var d = sumarDias(dia, -1)
+        while n < 3660, let guardado = historial[d], redondo(guardado.h) {
+            n += 1
+            d = sumarDias(d, -1)
+        }
+        let encendida = redondo(hoy)
+        return (n + (encendida ? 1 : 0), encendida)
+    }
+
     // MARK: El día
 
     static func foto(_ config: Config, _ cuentas: [String: Int]?) -> [Foto] {

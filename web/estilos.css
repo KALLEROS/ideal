@@ -317,6 +317,64 @@ a { color: inherit; font-weight: 600; text-underline-offset: 3px; }
   .pestanas button { width: 68px; }
   h1 { font-size: 34px; }
 }
+/* ---------- La racha (el fueguito) ---------- */
+:root { --llama: #ff6a13; --llama-clara: #ffb21f; --llama-fondo: rgba(255, 106, 19, .13); }
+.titulo-hoy { display: flex; align-items: center; gap: 12px; }
+.boton-fuego { background: none; border: 0; padding: 0; border-radius: 99px; }
+.boton-fuego[hidden] { display: none; }
+.fuego {
+  display: inline-flex; align-items: center; gap: 3px; height: 32px; padding: 0 11px 0 8px; border-radius: 99px;
+  background: var(--hundido); color: var(--suave); white-space: nowrap; flex: none;
+}
+.fuego .llama { font-family: var(--emoji); font-size: 18px; line-height: 1; filter: grayscale(1); opacity: .55; }
+.fuego b { font: 800 18px/1 var(--redonda); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.fuego.encendida { background: var(--llama-fondo); color: var(--llama); }
+.fuego.encendida .llama { filter: drop-shadow(0 0 6px rgba(255, 120, 20, .55)); opacity: 1; animation: titila 2.6s ease-in-out infinite; transform-origin: 50% 90%; }
+.fuego.chico { height: 28px; padding: 0 9px 0 6px; }
+.fuego.chico .llama { font-size: 15px; }
+.fuego.chico b { font-size: 16px; }
+@keyframes titila { 0%, 100% { transform: scale(1) rotate(0); } 30% { transform: scale(1.06, .97) rotate(-3deg); } 60% { transform: scale(.97, 1.05) rotate(2deg); } }
+.fuego.prende { animation: prende 1.2s var(--rebote); }
+@keyframes prende {
+  0% { transform: scale(.6); box-shadow: 0 0 0 0 rgba(255, 106, 19, .55); }
+  40% { transform: scale(1.28); }
+  100% { transform: scale(1); box-shadow: 0 0 0 18px rgba(255, 106, 19, 0); }
+}
+
+.racha-hero {
+  position: relative; overflow: hidden; border-radius: 28px; padding: 20px 20px 18px; margin-bottom: 14px;
+  background: var(--superficie); box-shadow: var(--sombra);
+}
+.racha-hero.encendida {
+  background: radial-gradient(120% 90% at 0% 0%, rgba(255, 178, 31, .32), transparent 60%),
+              radial-gradient(90% 80% at 100% 100%, rgba(255, 74, 19, .26), transparent 65%), var(--superficie);
+}
+.racha-arriba { display: flex; align-items: center; gap: 14px; }
+.llama-grande { font-family: var(--emoji); font-size: 58px; line-height: 1; filter: grayscale(1); opacity: .35; flex: none; }
+.racha-hero.viva .llama-grande { opacity: .6; }
+.racha-hero.encendida .llama-grande { filter: drop-shadow(0 4px 16px rgba(255, 106, 19, .5)); opacity: 1; animation: titila 2.6s ease-in-out infinite; transform-origin: 50% 90%; }
+.racha-num { font-family: var(--redonda); font-size: 22px; font-weight: 700; letter-spacing: -.02em; color: var(--suave); }
+.racha-num b { font-size: 48px; line-height: 1; font-weight: 900; letter-spacing: -.04em; color: var(--tinta); font-variant-numeric: tabular-nums; }
+.racha-hero.encendida .racha-num b { color: var(--llama); }
+.racha-sub { font-size: 15px; font-weight: 600; color: var(--suave); margin-top: 2px; }
+.racha-pie { margin-top: 14px; font-size: 15px; color: var(--tinta); text-wrap: pretty; }
+.racha-semana { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: 16px; }
+.racha-semana span { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+.racha-semana i {
+  display: grid; place-items: center; width: 100%; max-width: 38px; aspect-ratio: 1; border-radius: 50%;
+  background: var(--hundido); font-style: normal; font-family: var(--emoji); font-size: 17px;
+}
+.racha-semana .si i { background: linear-gradient(160deg, var(--llama-clara), var(--llama)); box-shadow: 0 4px 12px -4px rgba(255, 106, 19, .7); }
+.racha-semana .pendiente i { background: none; box-shadow: inset 0 0 0 2px var(--tenue); }
+.racha-semana small { font-size: 12px; font-weight: 600; color: var(--suave); }
+.racha-semana .hoy small { color: var(--tinta); font-weight: 800; }
+
+.numeros { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
+.dato { background: var(--superficie); border-radius: 20px; padding: 14px 12px 12px; box-shadow: var(--sombra); min-width: 0; }
+.dato b { display: block; font: 800 26px/1.05 var(--redonda); letter-spacing: -.03em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.dato b small { font-size: 15px; font-weight: 700; color: var(--suave); letter-spacing: 0; }
+.dato span { display: block; margin-top: 6px; font-size: 12px; line-height: 1.25; color: var(--suave); }
+@media (max-width: 360px) { .numeros { grid-template-columns: repeat(2, 1fr); } }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }

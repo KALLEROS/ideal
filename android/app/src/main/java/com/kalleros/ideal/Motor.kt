@@ -31,6 +31,9 @@ class Estado(
     var historial: JSONObject = JSONObject()
 )
 
+/** Días seguidos con todo cumplido; "encendida" cuando hoy ya cuenta. */
+data class Racha(val dias: Int, val encendida: Boolean)
+
 object Motor {
     const val MAX_CUENTA = 99
     const val MAX_TOQUES = 400
@@ -96,6 +99,35 @@ object Motor {
     /** Día redondo: todo cumplido. */
     fun redondo(e: Estado): Boolean =
         e.habitos.isNotEmpty() && e.habitos.all { cumplimiento(it.tipo, it.pasos, cuenta(e.cuentas, it.id)) >= 1.0 }
+
+    // ---------- Rachas ----------
+    /** Si una lista de círculos guardada (el "h" de un día del registro) quedó toda cumplida. */
+    fun redondo(items: JSONArray?): Boolean {
+        if (items == null || items.length() == 0) return false
+        for (i in 0 until items.length()) {
+            val it = items.optJSONObject(i) ?: return false
+            if (cumplimiento(it.optString("t", "meta"), it.optInt("p", 1), it.optInt("c", 0)) < 1.0) return false
+        }
+        return true
+    }
+
+    /**
+     * La racha de fuego: días seguidos con todo cumplido. Cuenta desde ayer hacia atrás y suma hoy si ya está
+     * todo cumplido ("encendida"). Si hoy todavía no, la racha sigue viva hasta que termine el día.
+     */
+    fun racha(historial: JSONObject, dia: String, hoyRedondo: Boolean): Racha {
+        var n = 0
+        var d = sumarDias(dia, -1)
+        while (n < 3660) {
+            val guardado = historial.optJSONObject(d) ?: break
+            if (!redondo(guardado.optJSONArray("h"))) break
+            n++
+            d = sumarDias(d, -1)
+        }
+        return Racha(n + (if (hoyRedondo) 1 else 0), hoyRedondo)
+    }
+
+    fun racha(e: Estado): Racha = racha(e.historial, e.dia ?: "", redondo(e))
 
     // ---------- El día ----------
     private fun foto(e: Estado, cuentas: Map<String, Int>?): JSONObject {

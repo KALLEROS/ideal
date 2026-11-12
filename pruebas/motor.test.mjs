@@ -81,3 +81,23 @@ test('siguienteReinicio: la próxima vez que da la hora de reinicio', () => {
   const finDeMes = Motor.siguienteReinicio(new Date(2026, 10, 30, 22, 0), 0);
   assert.deepEqual([finDeMes.getMonth(), finDeMes.getDate(), finDeMes.getHours()], [11, 1, 0]);
 });
+
+// ---------- Rachas (también las prueban Swift y Kotlin) ----------
+for (const caso of datos.rachas) {
+  test('racha: ' + caso.nombre, () => {
+    assert.deepEqual(Motor.racha(caso.historial, caso.dia, caso.hoy), caso.espera);
+  });
+}
+
+test('rachaCirculo: cuenta solo los días en que ese círculo se cumplió', () => {
+  const F = (id, p, c, t) => ({ id, e: 'x', n: id, p, c, t: t || 'meta' });
+  const historial = {
+    '2026-11-09': { h: [F('agua', 8, 2), F('cama', 1, 1)] },
+    '2026-11-10': { h: [F('agua', 8, 8), F('cama', 1, 1)] },
+    '2026-11-11': { h: [F('agua', 8, 8), F('cama', 1, 0)] }
+  };
+  assert.deepEqual(Motor.rachaCirculo(historial, '2026-11-12', 'agua', F('agua', 8, 3)), { dias: 2, encendida: false });
+  assert.deepEqual(Motor.rachaCirculo(historial, '2026-11-12', 'agua', F('agua', 8, 8)), { dias: 3, encendida: true });
+  assert.deepEqual(Motor.rachaCirculo(historial, '2026-11-12', 'cama', F('cama', 1, 0)), { dias: 0, encendida: false });
+  assert.deepEqual(Motor.rachaCirculo(historial, '2026-11-12', 'nuevo', null), { dias: 0, encendida: false });
+});

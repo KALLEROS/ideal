@@ -9,7 +9,7 @@ Tu rutina del día en círculos que se llenan: agua, dientes, perro, cama y lo q
 | Pestaña | Para qué |
 |---|---|
 | **Hoy** | Tus círculos. Un toque avanza un paso; mantener presionado sirve para corregir. Arriba va el porcentaje del día. |
-| **Registro** | Racha de días redondos, promedio, calendario del mes (cada día es una moneda) y cómo va cada círculo. |
+| **Registro** | Tu racha 🔥, tus números (cumplidos hoy, mejor racha, días al 100 %, promedio), calendario del mes y cómo va cada círculo, con lo bueno y los malos hábitos por separado. |
 | **Círculos** | Agregar, editar, ordenar y eliminar círculos. Aquí se elige el emoji, las veces al día y el color. |
 | **Ajustes** | Hora de reinicio, apariencia, cómo poner el widget, respaldo y borrar todo. |
 
@@ -31,6 +31,8 @@ Cada versión guarda sus propios datos. Para pasar de una a otra: **Ajustes → 
 - **Límite**: algo que quieres hacer menos, como el cigarro. Cada toque suma uno. El día cuenta como cumplido mientras no pases tu límite; si lo pasas, el círculo se pone rojo y muestra cuántos llevas.
 - **Porcentaje del día**: el promedio de tus círculos. Una meta vale lo que llevas de ella; un límite vale completo mientras no lo pases.
 - **Día redondo**: un día con todo cumplido. En el registro se pinta de oro; un día a medias, de plata.
+- **Racha 🔥**: días redondos seguidos. Junto a "Hoy" (y en el widget) aparece el fueguito con el número. Está gris mientras hoy todavía no cumples todo, y se prende cuando lo cumples. Si un día no llegas al 100 %, vuelve a cero. Cada círculo tiene además su propia racha en Registro.
+- **Malos hábitos**: cigarro, vape, mota, cerveza, whisky, vino, tragos, café, refresco, dulces, comida chatarra, redes sociales, apuestas y desvelo. Funcionan como límites.
 - **Reinicio**: el día se reinicia a las 4:00 a. m. (se cambia en Ajustes). Lo que marques antes de esa hora cuenta para el día anterior. Los días en que no abras la app quedan en ceros en el registro.
 
 ## Instalar en el iPhone (con widget)

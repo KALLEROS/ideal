@@ -40,6 +40,9 @@ struct DatosWidget {
     var cuentas: [String: Int]
     var hayToques: Bool
     var compartida = true
+    /// Días seguidos con todo cumplido. "rachaEncendida" cuando hoy ya cuenta.
+    var racha = 0
+    var rachaEncendida = false
 
     init(habitos: [Habito], cuentas: [String: Int], hayToques: Bool) {
         self.habitos = habitos; self.cuentas = cuentas; self.hayToques = hayToques
@@ -49,6 +52,19 @@ struct DatosWidget {
         cuentas = estado.hoy?.cuentas ?? [:]
         hayToques = !(estado.hoy?.toques.isEmpty ?? true)
         compartida = Almacen.hayCarpetaCompartida
+        let r = Motor.racha(estado.historial, dia: estado.hoy?.dia ?? "", hoy: Motor.foto(estado.config, estado.hoy?.cuentas))
+        racha = r.dias
+        rachaEncendida = r.encendida
+    }
+
+    /// Cómo amanece el widget a la hora de reinicio: en ceros, con la racha de ayer todavía viva si se cumplió todo.
+    var alReiniciar: DatosWidget {
+        var d = self
+        d.cuentas = [:]
+        d.hayToques = false
+        d.racha = rachaEncendida ? racha : 0
+        d.rachaEncendida = false
+        return d
     }
 
     private var fotos: [Foto] { Motor.foto(Config(habitos: habitos, horaReinicio: 0), cuentas) }
@@ -56,7 +72,8 @@ struct DatosWidget {
     var redondo: Bool { Motor.redondo(fotos) }
 
     /// Lo que se ve en la galería de widgets antes de agregarlo.
-    static let ejemplo = DatosWidget(
+    static let ejemplo: DatosWidget = {
+        var d = DatosWidget(
         habitos: [
             Habito(id: "agua", emoji: "💧", nombre: "Agua", pasos: 8, color: "#2F9BFF"),
             Habito(id: "dientes", emoji: "🪥", nombre: "Dientes", pasos: 3, color: "#2ED3A0"),
@@ -70,6 +87,9 @@ struct DatosWidget {
         ],
         cuentas: ["agua": 5, "dientes": 1, "bano": 1, "cama": 1, "perro": 2, "proteina": 1],
         hayToques: true)
+        d.racha = 4
+        return d
+    }()
 }
 
 // MARK: La moneda
@@ -221,6 +241,7 @@ struct CabezaView: View {
                     .foregroundStyle(Paleta.suave(esquema))
             }
             Spacer(minLength: 0)
+            if datos.racha > 0 { FuegoView(dias: datos.racha, encendida: datos.rachaEncendida) }
             if datos.hayToques {
                 Button(intent: DeshacerIntent()) {
                     Image(systemName: "arrow.uturn.backward")
@@ -233,6 +254,31 @@ struct CabezaView: View {
                 .accessibilityLabel(Text("Deshacer el último toque"))
             }
         }
+    }
+}
+
+/// La racha: un fueguito con los días seguidos al 100 %. Gris mientras hoy todavía no cuenta.
+struct FuegoView: View {
+    let dias: Int
+    let encendida: Bool
+    @Environment(\.colorScheme) private var esquema
+    private static let llama = "#FF8A1F"
+
+    var body: some View {
+        HStack(spacing: 2) {
+            Text("🔥").font(.system(size: 13))
+            Text("\(dias)")
+                .font(.system(size: 14, weight: .heavy, design: .rounded))
+                .monospacedDigit()
+                .foregroundStyle(encendida ? Color(hex: Self.llama) : Paleta.suave(esquema))
+        }
+        .padding(.horizontal, 8)
+        .frame(height: 24)
+        .background(Capsule().fill(encendida ? Color(hex: Self.llama).opacity(esquema == .dark ? 0.2 : 0.15) : Paleta.hundido(esquema).opacity(0.9)))
+        .saturation(encendida ? 1 : 0)
+        .opacity(encendida ? 1 : 0.8)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(encendida ? "Racha de \(dias) días, hoy ya cuenta" : "Racha de \(dias) días, cumple todo hoy para seguirla"))
     }
 }
 

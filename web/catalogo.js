@@ -64,12 +64,21 @@
       c('dormir', '😴', 'Dormir 8 horas', 1, 'indigo'),
       c('escribir', '📓', 'Escribir', 1, 'arena')
     ] },
-    { nombre: 'Límites', nota: 'Cada toque suma uno. El día cuenta como cumplido mientras no pases tu límite.', lista: [
+    { nombre: 'Malos hábitos', nota: 'Lo que quieres hacer menos. Cada toque suma uno y el día cuenta como cumplido mientras no pases tu límite. Con límite 0, cualquier toque lo pasa.', lista: [
       c('cigarro', '🚬', 'Cigarro', 5, 'humo', 'limite'),
+      c('vape', '💨', 'Vape', 3, 'turquesa', 'limite'),
+      c('mota', '🌿', 'Mota', 1, 'verde', 'limite'),
+      c('cerveza', '🍺', 'Cerveza', 2, 'amarillo', 'limite'),
+      c('whisky', '🥃', 'Whisky', 1, 'arena', 'limite'),
+      c('vino', '🍷', 'Vino', 1, 'rosa', 'limite'),
+      c('cocteles', '🍸', 'Tragos', 1, 'morado', 'limite'),
       c('cafe', '☕', 'Café', 3, 'arena', 'limite'),
       c('refresco', '🥤', 'Refresco', 1, 'coral', 'limite'),
-      c('alcohol', '🍺', 'Alcohol', 2, 'amarillo', 'limite'),
-      c('dulces', '🍬', 'Dulces', 1, 'rosa', 'limite')
+      c('dulces', '🍬', 'Dulces', 1, 'rosa', 'limite'),
+      c('chatarra', '🍔', 'Comida chatarra', 1, 'naranja', 'limite'),
+      c('celular', '📱', 'Redes sociales', 2, 'indigo', 'limite', 'Un toque por hora'),
+      c('apuestas', '🎰', 'Apuestas', 0, 'coral', 'limite'),
+      c('desvelo', '🦉', 'Desvelarme', 0, 'indigo', 'limite')
     ] }
   ];
 
@@ -77,7 +86,8 @@
   var INICIALES = ['agua', 'dientes', 'bano', 'cama'];
 
   // Lo primero que aparece en la galería de emojis.
-  var RUTINA = ('💧 🪥 🚿 🛁 🧼 🧴 🪒 🦷 💊 🩹 🛏️ 🧹 🧺 🧽 🪣 🗑️ 🍽️ 🍳 🥚 🥩 🍗 🐟 🥗 🥦 🍎 🍌 🥛 ☕ 🍵 🥤 🍺 🍷 🚬 🍬 🍫 ' +
+  var RUTINA = ('💧 🪥 🚿 🛁 🧼 🧴 🪒 🦷 💊 🩹 🛏️ 🧹 🧺 🧽 🪣 🗑️ 🍽️ 🍳 🥚 🥩 🍗 🐟 🥗 🥦 🍎 🍌 🥛 ☕ 🍵 🥤 🍬 🍫 ' +
+    '🚬 💨 🌿 🍃 🍺 🍻 🥃 🍷 🍸 🍹 🍾 🍔 🍟 🍕 🌭 🍩 🎰 🎲 🃏 📱 🎮 🦉 💸 ' +
     '🐶 🐕 🐱 🐈 🐠 🐦 🪴 🌱 👟 🏃 🚶 🏋️ 🚴 🧘 🤸 🏊 ⚽ 🏀 🥊 📖 📚 ✍️ 📓 🧠 🙏 😴 ⏰ 📵 💻 💼 💰 🧾 📞 ❤️ 👨‍👩‍👧 🎸 🎧 🎨 🧩 ☀️ 🌙 🚗 🛒 🧊 👕 💇 💅 🕶️ 🎒').split(' ');
 
   raiz.IdealCatalogo = { COLORES: COLORES, GRUPOS: GRUPOS, INICIALES: INICIALES, RUTINA: RUTINA };

@@ -28,6 +28,8 @@ final class FotosWidgetTests: XCTestCase {
     private func redondo() -> DatosWidget {
         var d = DatosWidget.ejemplo
         for h in d.habitos { d.cuentas[h.id] = h.pasos }
+        d.racha = 5
+        d.rachaEncendida = true
         return d
     }
 
